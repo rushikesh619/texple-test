@@ -2,7 +2,7 @@ const Battle = require('../models/battles');
 const Kings = require('../models/kings');
 
 const getInitialData = async () => {
-    const kings = await Kings.find({});
+    const kings = await Kings.distinct('name');
     const battle_type = await Battle.distinct('battle_type');
     const location = await Battle.distinct('location');
     const region = await Battle.distinct('region');
@@ -11,6 +11,7 @@ const getInitialData = async () => {
     result["battle_type"] = battle_type;
     result["location"] = location;
     result["region"] = region;
+    console.log(result)
     return result;
 }
 
