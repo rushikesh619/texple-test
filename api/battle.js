@@ -101,4 +101,15 @@ router.get('/stats', async (req, res) => {
     }
 })
 
+router.get('/search', async (req, res) => {
+    try {
+        let param = req.query;
+        console.log(param);
+        const result = await battleServices.search(param);
+        result ? res.status(200).json({ result: result, success: true }) : res.status(200).json({ result: null, success: false });
+    } catch (ex) {
+        console.log(ex);
+    }
+})
+
 module.exports = router

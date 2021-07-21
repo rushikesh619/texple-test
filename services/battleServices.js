@@ -138,6 +138,14 @@ const stats = async () => {
 
 }
 
+const search = async (params) => {
+    const { king, battle, location, region } = params;
+    console.log(king, battle, location, region);
+    const battles = await Battle.find({ $or: [{ defender_king: king }, { attacker_king: king }, { battle_type: battle }] }, { name: 1, attacker_king: 1, defender_king: 1, battle_type: 1, location: 1, region: 1 });
+    console.log(battles)
+    return battles;
+}
+
 module.exports = {
-    list, count, stats, getInitialData
+    list, count, stats, getInitialData, search
 }

@@ -11,7 +11,8 @@ import {
     EuiTextAlign,
     EuiButton,
     EuiSpacer,
-    EuiPanel
+    EuiPanel,
+    EuiBasicTable
 } from '@elastic/eui';
 import axios from 'axios';
 
@@ -30,6 +31,7 @@ class Landing extends Component {
             defenderMax: " ",
             defenderMin: " ",
             stats_battleType: " ",
+            searchResult: [],
             stats: " "
         }
     }
@@ -75,12 +77,16 @@ class Landing extends Component {
 
             this.setState({
                 kings: kingArray,
+                selectedKing: kingArray[0].value,
                 battle_type: battleTypeArray,
+                selectedBattle: battleTypeArray[0].value,
                 location: locationArray,
-                region: regionArray
+                selectedLocation: locationArray[0].value,
+                region: regionArray,
+                selectedRegion: regionArray[0].value
             })
         }).catch(err => {
-            console.log(err);
+            alert(err);
         })
     }
 
@@ -88,7 +94,7 @@ class Landing extends Component {
         axios.get('/api/battleRoute/list').then((res) => {
             alert(res.data.result);
         }).catch(err => {
-            console.log(err);
+            alert(err);
         })
     }
 
@@ -96,7 +102,7 @@ class Landing extends Component {
         axios.get('/api/battleRoute/count').then((res) => {
             alert(`total numbers of battles are :- ${res.data.result}`);
         }).catch(err => {
-            console.log(err);
+            alert(err);
         })
     }
 
@@ -115,16 +121,93 @@ class Landing extends Component {
                 stats_battleType: res.data.result.battle_type
             });
         }).catch(err => {
-            console.log(err);
+            alert(err);
         })
     }
 
-    onChange = (e) => {
+    onKingChange = (e) => {
         console.log(e.target.value);
         this.setState({ selectedKing: e.target.value });
     };
 
+    onBattleChange = (e) => {
+        console.log(e.target.value);
+        this.setState({ selectedBattle: e.target.value });
+    };
+
+    onLocationChange = (e) => {
+        console.log(e.target.value);
+        this.setState({ selectedLocation: e.target.value });
+    };
+
+    onRegionChange = (e) => {
+        console.log(e.target.value);
+        this.setState({ selectedRegion: e.target.value });
+    };
+
+    handleSubmit = () => {
+        axios.get('/api/battleRoute/search', {
+            params: {
+                king: this.state.selectedKing,
+                battle: this.state.selectedBattle,
+                location: this.state.selectedLocation,
+                region: this.state.selectedRegion
+            }
+        }).then((res) => {
+            this.setState({
+                searchResult: res.data.result
+            })
+        }).catch(err => {
+            alert(err);
+        })
+    }
+
+    getRowProps = (item) => {
+        const { id } = item;
+        return {
+            'data-test-subj': `row-${id}`,
+            className: 'customRowClass',
+            onClick: () => console.log(`Clicked row ${id}`),
+        };
+    };
+
+    getCellProps = (item, column) => {
+        const { id } = item;
+        const { field } = column;
+        return {
+            className: 'customCellClass',
+            'data-test-subj': `cell-${id}-${field}`,
+            textOnly: true,
+        };
+    };
+
     render() {
+        const columns = [
+            {
+                field: 'name',
+                name: 'Name',
+            },
+            {
+                field: 'attacker_king',
+                name: 'Attacker king',
+            },
+            {
+                field: 'defender_king',
+                name: 'Defender king',
+            },
+            {
+                field: 'battle_type',
+                name: 'Battle Type',
+            },
+            {
+                field: 'location',
+                name: 'Location',
+            },
+            {
+                field: 'region',
+                name: 'Region',
+            },
+        ];
         return (
             <>
                 <EuiPageTemplate
@@ -184,6 +267,8 @@ class Landing extends Component {
                         </EuiText>
                     </EuiPanel>
 
+                    <EuiSpacer size="l" />
+
                     <EuiText size="l">
                         <h5>select king</h5>
                         <EuiFlexItem>
@@ -192,7 +277,7 @@ class Landing extends Component {
                                 id="selectKing"
                                 options={this.state.kings}
                                 value={this.state.selectedKing}
-                                onChange={e => this.onChange(e)}
+                                onChange={e => this.onKingChange(e)}
                                 aria-label="Use aria labels when no actual label is in use"
                             />
                         </EuiFlexItem>
@@ -201,8 +286,8 @@ class Landing extends Component {
                             <EuiSelect
                                 id="selectBattle"
                                 options={this.state.battle_type}
-                                value={this.state.selectedKing}
-                                onChange={e => this.onChange(e)}
+                                value={this.state.selectedBattle}
+                                onChange={e => this.onBattleChange(e)}
                                 aria-label="Use aria labels when no actual label is in use"
                             />
                         </EuiFlexItem>
@@ -211,8 +296,8 @@ class Landing extends Component {
                             <EuiSelect
                                 id="selectLocation"
                                 options={this.state.location}
-                                value={this.state.selectedKing}
-                                onChange={e => this.onChange(e)}
+                                value={this.state.selectedLocation}
+                                onChange={e => this.onLocationChange(e)}
                                 aria-label="Use aria labels when no actual label is in use"
                             />
                         </EuiFlexItem>
@@ -221,12 +306,40 @@ class Landing extends Component {
                             <EuiSelect
                                 id="selectRegion"
                                 options={this.state.region}
-                                value={this.state.selectedKing}
-                                onChange={e => this.onChange(e)}
-                                aria-label="Use aria labels when no actual label is in use"
+                                value={this.state.selectedRegion}
+                                onChange={e => this.onRegionChange(e)}
+                                label="Use aria labels when no actual label is in use"
                             />
                         </EuiFlexItem>
+
+                        <EuiSpacer size="l" />
+
+                        <EuiFlexItem grow={false}>
+                            <EuiButton onClick={() => { this.handleSubmit() }}>
+                                submit
+                            </EuiButton>
+                        </EuiFlexItem>
                     </EuiText>
+
+                    <EuiSpacer size="l" />
+
+                    <EuiText size="l">
+                        <EuiTextAlign textAlign="center">
+                            <h4>
+                                To render below table select theparameters and click on submit button
+                            </h4>
+                        </EuiTextAlign>
+                    </EuiText>
+
+                    <EuiSpacer size="l" />
+
+                    <EuiBasicTable
+                        items={this.state.searchResult}
+                        rowHeader="name"
+                        columns={columns}
+                        rowProps={this.getRowProps}
+                        cellProps={this.getCellProps}
+                    />
                 </EuiPageTemplate>
             </>
         );
